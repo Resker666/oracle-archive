@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#111612" />
+    <title>问机算卜 · 卦象集录</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <symbol id="face-sun" viewBox="0 0 100 100">
+        <g fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round">
+          <circle cx="50" cy="50" r="17" />
+          <circle cx="50" cy="50" r="34" stroke-dasharray="2 17" />
+          <path d="M50 7v10M50 83v10M7 50h10M83 50h10M20 20l8 8M72 72l8 8M80 20l-8 8M28 72l-8 8" />
+        </g>
+      </symbol>
+      <symbol id="face-flame" viewBox="0 0 100 100">
+        <path d="M53 8c5 20-8 22-4 37 4-5 10-10 13-18 19 17 27 32 21 49-5 15-19 23-35 20C28 93 18 82 20 65c1-13 11-24 22-34-1 14 1 20 5 24 8-13 11-27 6-47Z" fill="none" stroke="currentColor" stroke-width="7" stroke-linejoin="round" />
+        <path d="M51 58c10 11 11 19 6 26-5 7-16 5-19-2-3-7 2-15 13-24Z" fill="currentColor" />
+      </symbol>
+      <symbol id="face-light" viewBox="0 0 100 100">
+        <path d="M50 5 61 37 94 50 61 62 50 95 38 62 6 50 38 37Z" fill="none" stroke="currentColor" stroke-width="7" stroke-linejoin="round" />
+        <path d="m78 8 4 11 11 4-11 4-4 11-4-11-11-4 11-4Z" fill="currentColor" />
+      </symbol>
+      <symbol id="face-moon" viewBox="0 0 100 100">
+        <path d="M70 15C50 20 37 37 39 56c2 18 17 31 35 30-8 7-18 11-29 10C22 94 6 76 8 53 10 29 30 10 54 10c6 0 11 2 16 5Z" fill="none" stroke="currentColor" stroke-width="7" stroke-linejoin="round" />
+        <path d="m75 23 3 8 9 3-9 3-3 9-3-9-9-3 9-3Z" fill="currentColor" />
+      </symbol>
+      <symbol id="face-ice" viewBox="0 0 100 100">
+        <g fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M50 9v82M14 30l72 40M14 70l72-40M50 9l-8 10M50 9l8 10M50 91l-8-10M50 91l8-10M14 30l13 1M14 30l5 12M86 70l-13-1M86 70l-5-12M14 70l5-12M14 70l13-1M86 30l-13 1M86 30l-5 12" />
+        </g>
+      </symbol>
+      <symbol id="face-thunder" viewBox="0 0 100 100">
+        <path d="M58 6 23 55h24l-5 39 36-53H54Z" fill="none" stroke="currentColor" stroke-width="7" stroke-linejoin="round" />
+        <path d="m20 17 3 8 9 3-9 3-3 9-3-9-9-3 9-3Z" fill="currentColor" />
+      </symbol>
+    </svg>
+
+    <main class="app" id="app">
+      <div class="screen screen-home is-active" id="screen-home" aria-hidden="false">
+        <div class="scene-backdrop" aria-hidden="true">
+          <div class="stone-gate"></div>
+          <div class="light-shaft"></div>
+          <div class="scene-floor"></div>
+        </div>
+
+        <header class="scene-hud">
+          <div class="brand-mark"><span class="brand-seal">問</span><span>随便观 · 问机算卜</span></div>
+          <div class="collection-meter"><span>卦象集录</span><strong id="home-count">0 / 26</strong></div>
+        </header>
+
+        <div class="merchant" aria-hidden="true">
+          <div class="merchant-hood">
+            <div class="hood-ear hood-ear-left"></div>
+            <div class="hood-ear hood-ear-right"></div>
+            <div class="hair-tuft"></div>
+            <div class="merchant-face">
+              <span class="merchant-eye eye-left"></span>
+              <span class="merchant-eye eye-right"></span>
+              <span class="merchant-muzzle"></span>
+              <span class="merchant-nose"></span>
+            </div>
+          </div>
+          <div class="merchant-robe">
+            <div class="robe-collar"></div>
+            <div class="robe-sash"></div>
+            <div class="robe-medallion">卜</div>
+          </div>
+        </div>
+
+        <div class="divination-wheel" aria-hidden="true">
+          <div class="wheel-back"></div>
+          <div class="wheel-rim rim-outer"></div>
+          <div class="wheel-rim rim-inner"></div>
+          <div class="wheel-segments"></div>
+          <div class="wheel-token token-top">☼</div>
+          <div class="wheel-token token-left">✦</div>
+          <div class="wheel-token token-right">☷</div>
+          <div class="wheel-token token-bottom">☯</div>
+          <div class="wheel-core"><span>問</span><small>機</small></div>
+          <div class="wheel-bolt bolt-one"></div>
+          <div class="wheel-bolt bolt-two"></div>
+          <div class="wheel-bolt bolt-three"></div>
+          <div class="wheel-bolt bolt-four"></div>
+        </div>
+
+        <div class="countertop" aria-hidden="true"></div>
+        <div class="turtle-charm" aria-hidden="true">
+          <div class="charm-shell"><span>玄</span></div>
+          <div class="charm-head"><i></i><i></i></div>
+          <div class="charm-foot foot-a"></div>
+          <div class="charm-foot foot-b"></div>
+        </div>
+        <div class="hanging-plaque" aria-hidden="true"><span>卦象集录</span></div>
+
+        <div class="home-actions">
+          <p class="home-kicker">今日卦象 · 尚未启封</p>
+          <div class="home-buttons">
+            <button class="game-button button-gold" id="start-draw" type="button"><span>开始占卜</span><b>›</b></button>
+            <button class="game-button button-dark" id="open-archive-home" type="button"><span>查看集录</span><b>↗</b></button>
+          </div>
+        </div>
+      </div>
+
+      <section class="screen screen-shake" id="screen-shake" aria-hidden="true">
+        <div class="shake-bg" aria-hidden="true"></div>
+        <header class="screen-hud">
+          <button class="back-button" data-go-home type="button" aria-label="返回">‹</button>
+          <span>问机算卜</span>
+          <span class="hud-spacer"></span>
+        </header>
+        <div class="shake-copy">
+          <span class="section-index">01 / 起卦</span>
+          <h1>心念既定<br />请摇卦取象</h1>
+        </div>
+        <div class="large-tortoise" id="shake-target" role="button" tabindex="0" aria-label="按住并来回滑动以摇卦">
+          <div class="tortoise-rim"></div>
+          <div class="tortoise-shell">
+            <div class="shell-glyph glyph-one">☰</div>
+            <div class="shell-glyph glyph-two">☷</div>
+            <div class="shell-glyph glyph-three">☲</div>
+            <div class="shell-glyph glyph-four">☵</div>
+            <div class="shell-center">玄</div>
+          </div>
+          <div class="tortoise-neck"></div>
+          <div class="tortoise-head"><span></span><span></span></div>
+          <div class="tortoise-leg leg-left"></div>
+          <div class="tortoise-leg leg-right"></div>
+        </div>
+        <div class="shake-instruction">
+          <div class="instruction-copy">
+            <span>滑动屏幕以获取卦象</span>
+            <strong id="shake-percent">0%</strong>
+          </div>
+          <div class="shake-track"><span id="shake-fill"></span></div>
+          <button id="tap-shake" class="small-action" type="button">摇动龟壳</button>
+        </div>
+        <p class="fiction-note">算卦占卜只是娱乐，无关现实生活</p>
+      </section>
+
+      <section class="screen screen-result" id="screen-result" aria-hidden="true">
+        <div class="result-backdrop" aria-hidden="true"></div>
+        <header class="screen-hud result-hud">
+          <button class="back-button" data-go-home type="button" aria-label="返回">‹</button>
+          <span>今日卦象</span>
+          <button class="text-button" id="open-archive-result" type="button">卦象集录 ↗</button>
+        </header>
+        <div class="result-stage">
+          <div class="result-device" aria-hidden="true">
+            <div class="result-ring ring-one"></div>
+            <div class="result-ring ring-two"></div>
+            <div class="result-ring ring-three"></div>
+            <div class="result-medallion medallion-top">☼</div>
+            <div class="result-medallion medallion-left">☷</div>
+            <div class="result-medallion medallion-right">☲</div>
+            <div class="result-medallion medallion-bottom">☯</div>
+            <div class="result-dice" id="result-dice"></div>
+          </div>
+          <aside class="fortune-slip">
+            <span class="slip-cord"></span>
+            <span class="slip-seal" id="result-seal">平</span>
+            <span class="slip-caption">今日运势</span>
+          </aside>
+        </div>
+        <div class="result-footer">
+          <div class="result-heading">
+            <span class="section-index">卦象已定</span>
+            <h1 id="result-title">玄冥凝渊</h1>
+            <p id="result-verse">九重寒狱，静候赤鸟破冰而来。</p>
+          </div>
+          <div class="result-actions">
+            <button class="game-button button-dark" id="interpret-result" type="button">解卦</button>
+            <button class="game-button button-gold" id="confirm-result" type="button">确认</button>
+          </div>
+        </div>
+        <aside class="reading-panel" id="reading-panel" aria-hidden="true">
+          <button class="reading-close" id="close-reading" type="button" aria-label="收起解读">×</button>
+          <span class="section-index">卦象解读</span>
+          <h2 id="reading-title">玄冥凝渊</h2>
+          <p id="reading-verse"></p>
+          <dl class="reading-lines">
+            <div><dt>健康</dt><dd id="reading-health"></dd></div>
+            <div><dt>财运</dt><dd id="reading-wealth"></dd></div>
+            <div><dt>人际</dt><dd id="reading-social"></dd></div>
+          </dl>
+        </aside>
+      </section>
+
+      <section class="screen screen-archive" id="screen-archive" aria-hidden="true">
+        <div class="archive-frame">
+          <header class="archive-header">
+            <div class="archive-heading">
+              <span class="section-index">随便观 · 典藏</span>
+              <h1>卦象集录</h1>
+            </div>
+            <div class="archive-progress"><span>藏卦集</span><strong id="archive-count">0 / 26</strong></div>
+            <button class="back-button archive-back" data-go-home type="button" aria-label="返回">×</button>
+          </header>
+          <div class="archive-layout">
+            <nav class="fortune-nav" aria-label="运势分类" id="fortune-nav">
+              <button class="fortune-filter is-selected" data-rank="鸿运" type="button"><span>鸿运</span><strong>0 / 3</strong></button>
+              <button class="fortune-filter" data-rank="大吉" type="button"><span>大吉</span><strong>0 / 4</strong></button>
+              <button class="fortune-filter" data-rank="吉" type="button"><span>吉</span><strong>0 / 6</strong></button>
+              <button class="fortune-filter" data-rank="小吉" type="button"><span>小吉</span><strong>0 / 6</strong></button>
+              <button class="fortune-filter" data-rank="顺" type="button"><span>顺</span><strong>0 / 4</strong></button>
+              <button class="fortune-filter" data-rank="平" type="button"><span>平</span><strong>0 / 3</strong></button>
+            </nav>
+            <div class="catalog-column">
+              <div class="catalog-label"><span>卦象</span><span>名录</span><span>收录</span></div>
+              <div class="catalog-list" id="catalog-list"></div>
+            </div>
+            <aside class="archive-detail" id="archive-detail">
+              <div class="detail-corner corner-tl"></div><div class="detail-corner corner-tr"></div>
+              <div class="detail-corner corner-bl"></div><div class="detail-corner corner-br"></div>
+              <span class="detail-stamp" id="detail-stamp">卦</span>
+              <span class="section-index" id="detail-rank">卦象玄机</span>
+              <h2 id="detail-title">运势解析</h2>
+              <p class="detail-verse" id="detail-verse">卦象玄机，运势解析，撰册集录，于此温习。</p>
+              <div class="detail-dice" id="detail-dice"></div>
+              <div class="detail-analysis" id="detail-analysis" hidden>
+                <p><b>健康</b><span id="detail-health"></span></p>
+                <p><b>财运</b><span id="detail-wealth"></span></p>
+                <p><b>人际</b><span id="detail-social"></span></p>
+              </div>
+            </aside>
+          </div>
+          <footer class="archive-footer">
+            <span>卦象玄机，运势解析，撰册集录，于此温习。</span>
+            <button id="clear-archive" class="clear-button" type="button">清空本地记录</button>
+          </footer>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

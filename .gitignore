@@ -1,0 +1,14 @@
+# Operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editor files
+.idea/
+*.swp
+*.swo
+
+# Generated files
+node_modules/
+dist/
+coverage/
