@@ -36,7 +36,7 @@
     reading.classList.toggle("is-open", open);
     reading.inert = !open;
     reading.setAttribute("aria-hidden", String(!open));
-    if (focus) $(open ? "#close-reading" : "#interpret-result").focus();
+    if (focus) $(open ? "#close-reading" : "#interpret-result").focus({ preventScroll: true });
   }
 
   function setScreen(name) {
