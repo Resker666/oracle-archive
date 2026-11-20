@@ -1,458 +1,441 @@
-const STORAGE_KEY = "zzz-divination-local-v2";
+(() => {
+  const $ = (selector) => document.querySelector(selector);
+  const screens = [...document.querySelectorAll(".screen")];
+  const modeInputs = [...document.querySelectorAll('input[name="draw-mode"]')];
+  const reading = $("#reading-panel");
+  const startLabel = $("#start-draw span");
+  const rewardItems = $("#reward-items");
+  const historyFilter = $("#history-scene");
+  const dateFormat = new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+  const state = {
+    screen: "hub",
+    saved: archiveStore.read(),
+    scene: null,
+    session: null,
+    result: null,
+    archiveReturn: "home",
+    recordsReturn: "hub",
+    recordsTab: "history",
+  };
 
-const ranks = [
-  { name: "鸿运", total: 3 },
-  { name: "大吉", total: 4 },
-  { name: "吉", total: 6 },
-  { name: "小吉", total: 6 },
-  { name: "顺", total: 4 },
-  { name: "平", total: 3 },
-];
-
-const faces = {
-  sun: { name: "日", label: "日曜" },
-  flame: { name: "炎", label: "离火" },
-  light: { name: "光", label: "灵光" },
-  moon: { name: "月", label: "月轮" },
-  ice: { name: "冰", label: "玄冰" },
-  thunder: { name: "雷", label: "震雷" },
-};
-
-const entries = [
-  {
-    id: "radiant-world", rank: "鸿运", title: "煌天耀世", rolls: [["sun", "sun", "sun"]],
-    verse: "三曜同辉，天光大开。心中所愿，正逢其时。",
-    health: "阳气正盛，循序而行，留心暑热。", wealth: "财路渐明，积少成多，不必贪急。", social: "坦诚相待，自有同道并肩。",
-  },
-  {
-    id: "eternal-flame", rank: "鸿运", title: "离火常明", rolls: [["flame", "flame", "flame"]],
-    verse: "三火相承，明意照途。行事果决，亦要记得收锋。",
-    health: "心火勿亢，饮食有节，动静相宜。", wealth: "机缘向好，做好准备便可把握。", social: "以热忱聚友，言语仍需留有余地。",
-  },
-  {
-    id: "void-mystery", rank: "鸿运", title: "太虚洞玄", rolls: [["light", "light", "light"]],
-    verse: "虚中藏妙，玄理渐显。看似无形之处，或有新机。",
-    health: "静心养神，规律作息，勿使思虑过劳。", wealth: "深入探寻，旧线索也能带来新收获。", social: "与可信之人同行，彼此皆有所助。",
-  },
-  {
-    id: "sun-flame-aid", rank: "大吉", title: "曦炎相济", rolls: [["sun", "sun", "light"], ["sun", "sun", "flame"]],
-    verse: "日火相扶，虚实相生。眼前之事，宜趁势推进。",
-    health: "松解肩颈，调和作息，让心火归平。", wealth: "稳步经营，意料之外亦有收获。", social: "言辞温和些，热心自会换来回应。",
-  },
-  {
-    id: "void-sun-glory", rank: "大吉", title: "太虚耀华", rolls: [["light", "light", "sun"], ["light", "light", "flame"]],
-    verse: "虚空得照，云开见华。按部就班，自能见到成果。",
-    health: "晨起舒展，夜间静养，照看脾胃。", wealth: "机会可期，量力接事，切莫过满。", social: "与旧友叙谈，或能解开一桩心事。",
-  },
-  {
-    id: "double-bright-flame", rank: "大吉", title: "重明叠焰", rolls: [["flame", "flame", "sun"], ["flame", "flame", "light"]],
-    verse: "双明叠起，刚柔并济。把握分寸，锋芒便能成为助力。",
-    health: "精神充沛，也要安排片刻休息。", wealth: "财势向上，适合推进已准备好的计划。", social: "热情待人，合作中更容易彼此成就。",
-  },
-  {
-    id: "bright-void-flame", rank: "大吉", title: "煌虚燃明", rolls: [["sun", "flame", "light"]],
-    verse: "明光穿透迷雾，借势而行，前路逐渐清楚。",
-    health: "避免昼夜颠倒，午间稍作休息。", wealth: "三方助力渐齐，细察身边的好机会。", social: "遇到难题不必独扛，伙伴就在近处。",
-  },
-  {
-    id: "sun-embraces-moon", rank: "吉", title: "煌阳涵阴", rolls: [["sun", "sun", "moon"], ["sun", "sun", "ice"], ["sun", "sun", "thunder"]],
-    verse: "双阳映月，刚柔相照。只要不躁进，事情自会顺开。",
-    health: "心气旺时记得放松，静坐片刻即可。", wealth: "利于整理账目、稳步经营，少做冲动决定。", social: "先听后言，误会容易消散。",
-  },
-  {
-    id: "flame-gathers-shadow", rank: "吉", title: "炎光敛影", rolls: [["flame", "flame", "moon"], ["flame", "flame", "ice"], ["flame", "flame", "thunder"]],
-    verse: "双炎敛华，月影藏锋。看清边界，再将热望付诸行动。",
-    health: "少些熬夜，给身心留出恢复的空隙。", wealth: "来得快的机会要多核实，不义之财莫留。", social: "伸手相助会有回响，勿因一时误解疏远。",
-  },
-  {
-    id: "true-in-illusion", rank: "吉", title: "幻中守真", rolls: [["light", "light", "moon"], ["light", "light", "ice"], ["light", "light", "thunder"]],
-    verse: "幻象虽多，本心不移。等一等，答案会从纷扰中浮现。",
-    health: "注意劳逸交替，少让杂事扰乱睡眠。", wealth: "稳住手头事务，远方的机会尚待分辨。", social: "谨慎听取传言，真诚沟通更有用。",
-  },
-  {
-    id: "melted-gold-jade", rank: "吉", title: "熔金淬玉", rolls: [["sun", "light", "moon"], ["sun", "light", "ice"], ["sun", "light", "thunder"]],
-    verse: "烈日淬金，清辉磨玉。暂露锋芒之后，仍以谦和为贵。",
-    health: "饮食均衡，三餐规律，气力自然回升。", wealth: "先守后进，谨慎检查每一笔支出。", social: "不必刻意出头，关键时刻再出手即可。",
-  },
-  {
-    id: "sun-flame-void-thunder", rank: "吉", title: "日曜虚霆", rolls: [["sun", "flame", "moon"], ["sun", "flame", "ice"], ["sun", "flame", "thunder"]],
-    verse: "日火交映，阴阳相激。变化虽快，同行之人可作依凭。",
-    health: "减少奔波劳累，先把精神养足。", wealth: "机缘会起也会落，见好便收更稳妥。", social: "困难宜共同面对，切勿把情绪留给亲近之人。",
-  },
-  {
-    id: "woven-flame-net", rank: "吉", title: "空焰织网", rolls: [["light", "flame", "moon"], ["light", "flame", "ice"], ["light", "flame", "thunder"]],
-    verse: "无形之火照路，细密之网藏珠。耐心寻觅，会有所得。",
-    health: "心烦时先缓一缓，清淡饮食有益。", wealth: "机会藏在细节里，避免被表面声势牵着走。", social: "话语不必太重，给彼此留一点余地。",
-  },
-  {
-    id: "frost-blade-sun", rank: "小吉", title: "霜刃映日", rolls: [["moon", "ice", "sun"], ["moon", "ice", "light"], ["moon", "ice", "flame"]],
-    verse: "霜刃映日，枯枝将断。清理旧事之后，春意自会回来。",
-    health: "注意手足保暖，早晚舒展筋骨。", wealth: "眼下求财费力，按计划慢慢来更合适。", social: "独处不妨，记得回应关心你的人。",
-  },
-  {
-    id: "candle-dark-room", rank: "小吉", title: "暗室秉烛", rolls: [["moon", "thunder", "sun"], ["moon", "thunder", "light"], ["moon", "thunder", "flame"]],
-    verse: "暗处有雷，手中有烛。先照亮脚下的一步，迷惘便会散开。",
-    health: "规律活动，别让久坐与劳累积成不适。", wealth: "核对账目和期限，月底尤其留心。", social: "少说气话，多一点暖意便能打开僵局。",
-  },
-  {
-    id: "thunder-lock-dragon", rank: "小吉", title: "雷池锁蛟", rolls: [["thunder", "ice", "sun"], ["thunder", "ice", "light"], ["thunder", "ice", "flame"]],
-    verse: "玄冰锁蛟，雷声待发。时机未至时，强求反而添乱。",
-    health: "留意筋骨疲劳，适量活动、好好休息。", wealth: "暂缓高风险投入，等待局势明朗。", social: "言语放缓，能省去不必要的争执。",
-  },
-  {
-    id: "overload-reaction", rank: "小吉", title: "超载反应", rolls: [["thunder", "thunder", "sun"], ["thunder", "thunder", "light"], ["thunder", "thunder", "flame"]],
-    verse: "双雷震耳，能量过盛。稍作停歇，反而更容易抓住重点。",
-    health: "别让压力持续堆积，短暂小憩很有必要。", wealth: "收支需谨慎，稳扎稳打胜过一时冲动。", social: "与伙伴分担事务，协作会比单打独斗顺畅。",
-  },
-  {
-    id: "twin-jades-seal-flame", rank: "小吉", title: "双珏镇炎", rolls: [["ice", "ice", "sun"], ["ice", "ice", "light"], ["ice", "ice", "flame"]],
-    verse: "双玉镇火，静候冰消。眼下收敛锋芒，正为下一步蓄力。",
-    health: "睡眠宜充足，莫让小毛病拖成疲惫。", wealth: "冷热交替，财务先守后动，不宜急于求成。", social: "主动表达善意，旧日隔阂有望融开。",
-  },
-  {
-    id: "dark-yin-welcomes-light", rank: "小吉", title: "玄阴纳曦", rolls: [["moon", "moon", "sun"], ["moon", "moon", "light"], ["moon", "moon", "flame"]],
-    verse: "阴盛而阳微，转机正在靠近。把心放宽，别急着定论。",
-    health: "早些休息，清晨接触日光，精神会更安稳。", wealth: "机会渐露，细小得失不必过度计较。", social: "流言不值得追逐，静待几日便能看清。",
-  },
-  {
-    id: "jade-plate-thunder", rank: "顺", title: "玉盘化震", rolls: [["moon", "moon", "ice"], ["moon", "moon", "thunder"]],
-    verse: "玉盘映影，雷动云开。旧有困局开始松动，循序即可。",
-    health: "避免过劳受寒，照顾好日常起居。", wealth: "守住已有收获，细水长流便是好势头。", social: "真心相待，关系会在平常往来中加深。",
-  },
-  {
-    id: "moon-frost-lightning", rank: "顺", title: "月凝霜电", rolls: [["moon", "ice", "thunder"]],
-    verse: "月凝寒霜，雷伏深处。先稳住步调，再等变化转机。",
-    health: "注意保暖与休息，活动筋骨不宜过猛。", wealth: "先核实消息来源，暂不宜凭感觉下注。", social: "柔和表达立场，误会可在沟通中解开。",
-  },
-  {
-    id: "cold-soul-double", rank: "顺", title: "寒魄双凝", rolls: [["ice", "ice", "moon"], ["ice", "ice", "thunder"]],
-    verse: "寒魄凝舟，静候旭日。短暂的停滞并非坏事，蓄力再行。",
-    health: "适度晒太阳、活动身体，心绪也会舒展。", wealth: "不必羡慕横财，稳妥经营更适合当下。", social: "一句真诚的问候，能让关系回暖。",
-  },
-  {
-    id: "thunder-shatters-jade", rank: "顺", title: "惊雷碎玉", rolls: [["thunder", "thunder", "moon"], ["thunder", "thunder", "ice"]],
-    verse: "双雷破坚冰，旧壳渐裂。顺势调整，新的空间已经出现。",
-    health: "留意磕碰与疲劳，天气不佳时少去高处。", wealth: "检查日常开支，避免不知不觉的浪费。", social: "面对纷扰先求证，再请可信的人一道判断。",
-  },
-  {
-    id: "dark-depths", rank: "平", title: "玄冥凝渊", rolls: [["ice", "ice", "ice"]],
-    verse: "九重寒渊，不必沉心。静候冰消，赤鸟自会鸣响。",
-    health: "睡好吃好，稍作运动，以散沉滞之气。", wealth: "开源节流，日拱一卒，切莫急于求成。", social: "遇事不妨问问可靠的朋友，彼此守望。",
-  },
-  {
-    id: "thunder-calms-delusion", rank: "平", title: "震霆殛妄", rolls: [["thunder", "thunder", "thunder"]],
-    verse: "雷鸣不争，锋刃暂藏。沉住气，等待更合适的时机。",
-    health: "保持规律作息，清晨与夜间都给自己留些安宁。", wealth: "来得快的财也可能去得快，提防过分好听的承诺。", social: "别把自己隔绝太久，可信的伙伴能陪你破局。",
-  },
-  {
-    id: "dark-yin-devours-moon", rank: "平", title: "玄阴噬月", rolls: [["moon", "moon", "moon"]],
-    verse: "重轮掩月，孤凤待飞。暂且守静，前路会重新显现。",
-    health: "留心作息颠倒，逐步调整比强行熬夜更好。", wealth: "计划之外的收益不易久留，量入为出即可。", social: "别因独处而错过善意，主动联络旧友吧。",
-  },
-];
-
-const state = {
-  screen: "home",
-  rank: "鸿运",
-  selectedId: null,
-  current: null,
-  progress: 0,
-  shaking: false,
-  completing: false,
-  found: new Set(),
-  history: [],
-};
-
-function readSavedState() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-    state.found = new Set(Array.isArray(saved.found) ? saved.found.filter((id) => entries.some((entry) => entry.id === id)) : []);
-    state.history = Array.isArray(saved.history) ? saved.history.slice(0, 40) : [];
-  } catch {
-    state.found = new Set();
-    state.history = [];
-  }
-}
-
-function persist() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ found: [...state.found], history: state.history.slice(0, 40) }));
-  } catch {
-    setHint("本机存储不可用，本次记录不会保留到下次打开。");
-  }
-}
-
-function setHint(message) {
-  const hint = document.querySelector(".home-kicker");
-  if (hint) hint.textContent = message;
-}
-
-function iconMarkup(face, className = "") {
-  return `<svg class="face-art ${className}" viewBox="0 0 100 100" aria-hidden="true"><use href="#face-${face}"></use></svg>`;
-}
-
-function renderDice(container, roll, sizeClass = "mini-die") {
-  container.replaceChildren();
-  roll.forEach((face) => {
-    const die = document.createElement("span");
-    die.className = sizeClass;
-    die.innerHTML = iconMarkup(face);
-    die.title = faces[face].label;
-    container.appendChild(die);
-  });
-}
-
-function setScreen(name) {
-  state.screen = name;
-  document.querySelectorAll(".screen").forEach((screen) => {
-    const active = screen.id === `screen-${name}`;
-    screen.classList.toggle("is-active", active);
-    screen.setAttribute("aria-hidden", String(!active));
-  });
-  document.querySelector("#reading-panel").classList.remove("is-open");
-  document.querySelector("#reading-panel").setAttribute("aria-hidden", "true");
-  document.querySelector("#screen-shake").classList.remove("is-shaking");
-}
-
-function updateHomeCount() {
-  const count = state.found.size;
-  document.querySelector("#home-count").textContent = `${count} / 26`;
-  document.querySelector(".home-kicker").textContent = count
-    ? `已得卦象 · ${count} / 26`
-    : "今日卦象 · 尚未启封";
-}
-
-function startDraw() {
-  state.progress = 0;
-  state.completing = false;
-  document.querySelector("#shake-percent").textContent = "0%";
-  document.querySelector("#shake-fill").style.width = "0%";
-  setScreen("shake");
-}
-
-function addProgress(amount) {
-  if (state.screen !== "shake" || state.completing) return;
-  state.progress = Math.min(100, state.progress + amount);
-  document.querySelector("#shake-percent").textContent = `${Math.round(state.progress)}%`;
-  document.querySelector("#shake-fill").style.width = `${state.progress}%`;
-  if (state.progress >= 100) finishShake();
-}
-
-function finishShake() {
-  if (state.completing) return;
-  state.completing = true;
-  state.shaking = false;
-  document.querySelector("#screen-shake").classList.remove("is-shaking");
-  window.setTimeout(() => {
-    const entry = entries[Math.floor(Math.random() * entries.length)];
-    const roll = entry.rolls[Math.floor(Math.random() * entry.rolls.length)];
-    state.current = { entry, roll };
-    showResult();
-  }, 520);
-}
-
-function showResult() {
-  const { entry, roll } = state.current;
-  document.querySelector("#result-seal").textContent = entry.rank;
-  document.querySelector("#result-title").textContent = entry.title;
-  document.querySelector("#result-verse").textContent = entry.verse;
-  renderDice(document.querySelector("#result-dice"), roll, "result-die");
-  document.querySelector("#reading-title").textContent = entry.title;
-  document.querySelector("#reading-verse").textContent = entry.verse;
-  document.querySelector("#reading-health").textContent = entry.health;
-  document.querySelector("#reading-wealth").textContent = entry.wealth;
-  document.querySelector("#reading-social").textContent = entry.social;
-  setScreen("result");
-}
-
-function saveCurrentResult() {
-  if (!state.current) return;
-  const { entry, roll } = state.current;
-  state.found.add(entry.id);
-  state.history.unshift({ id: entry.id, roll, time: new Date().toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) });
-  state.history = state.history.slice(0, 40);
-  persist();
-  updateHomeCount();
-  state.current = null;
-  setScreen("home");
-}
-
-function makeUnknownDice(count = 3) {
-  return Array.from({ length: count }, () => {
-    const die = document.createElement("span");
-    die.className = "mini-die unknown-die";
-    die.textContent = "?";
-    return die;
-  });
-}
-
-function renderArchiveDetail(entry) {
-  const stamp = document.querySelector("#detail-stamp");
-  const rank = document.querySelector("#detail-rank");
-  const title = document.querySelector("#detail-title");
-  const verse = document.querySelector("#detail-verse");
-  const dice = document.querySelector("#detail-dice");
-  const analysis = document.querySelector("#detail-analysis");
-
-  if (!entry || !state.found.has(entry.id)) {
-    stamp.textContent = "?";
-    rank.textContent = "卦象待启";
-    title.textContent = "未收录";
-    verse.textContent = "此卦尚未入册。再摇一次龟壳，或许便能相见。";
-    dice.replaceChildren(...makeUnknownDice());
-    analysis.hidden = true;
-    return;
+  function element(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
   }
 
-  stamp.textContent = entry.rank.slice(0, 1);
-  rank.textContent = entry.rank;
-  title.textContent = entry.title;
-  verse.textContent = entry.verse;
-  const roll = entry.rolls[0];
-  renderDice(dice, roll);
-  document.querySelector("#detail-health").textContent = entry.health;
-  document.querySelector("#detail-wealth").textContent = entry.wealth;
-  document.querySelector("#detail-social").textContent = entry.social;
-  analysis.hidden = false;
-}
+  function setReading(open, focus = true) {
+    reading.classList.toggle("is-open", open);
+    reading.inert = !open;
+    reading.setAttribute("aria-hidden", String(!open));
+    if (focus) $(open ? "#close-reading" : "#interpret-result").focus();
+  }
 
-function renderArchive() {
-  const totalFound = state.found.size;
-  document.querySelector("#archive-count").textContent = `${totalFound} / ${entries.length}`;
-  document.querySelectorAll(".fortune-filter").forEach((button) => {
-    const rank = button.dataset.rank;
-    const rankEntries = entries.filter((entry) => entry.rank === rank);
-    const discovered = rankEntries.filter((entry) => state.found.has(entry.id)).length;
-    button.querySelector("strong").textContent = `${discovered} / ${rankEntries.length}`;
-    button.classList.toggle("is-selected", rank === state.rank);
-  });
+  function setScreen(name) {
+    const screenChanged = state.screen !== name;
+    state.screen = name;
+    setReading(false, false);
+    $("#app").dataset.screen = name;
+    for (const screen of screens) {
+      const active = screen.id === "screen-" + name;
+      screen.classList.toggle("is-active", active);
+      screen.inert = !active;
+      screen.setAttribute("aria-hidden", String(!active));
+    }
+    if (!screenChanged) return;
+    const active = $("#screen-" + name);
+    active.scrollTop = 0;
+    const heading = active.querySelector("h1[tabindex]");
+    const focusTarget = heading ?? active.querySelector("#start-draw, #shake-target, [data-back]");
+    focusTarget?.focus({ preventScroll: true });
+  }
 
-  const list = document.querySelector("#catalog-list");
-  list.replaceChildren();
-  entries.filter((entry) => entry.rank === state.rank).forEach((entry) => {
-    const known = state.found.has(entry.id);
-    const button = document.createElement("button");
+  function usedToday(quotaGroup) {
+    return state.saved.mode === "daily" ? archiveStore.dailyResult(state.saved, quotaGroup) : null;
+  }
+
+  function usedTodayText(record) {
+    return "今日次数已用 · " + (sceneById[record.sceneId]?.name ?? record.sceneId);
+  }
+
+  function renderHub() {
+    for (const input of modeInputs) input.checked = input.value === state.saved.mode;
+    const used = usedToday(DAILY_QUOTA_GROUP);
+    $("#mode-status").textContent = used ? usedTodayText(used) : state.saved.mode === "daily"
+      ? "今日还有 1 次，所有地点共用。"
+      : "可重复抽取，各地点均可试玩。";
+    $("#today-hub").hidden = !used;
+  }
+
+  function renderTemple() {
+    const ids = archiveStore.collection(state.saved, state.scene.collectionId);
+    $("#home-count").textContent = ids.length + " / " + drawPools[state.scene.poolId].length;
+    const used = usedToday(state.scene.quotaGroup);
+    $(".home-kicker").textContent = used ? usedTodayText(used) : "卦象集录 · 已收录 " + ids.length + " 种";
+    startLabel.textContent = used ? "查看今日结果" : "开始占卜";
+  }
+
+  function renderActivity() {
+    const scene = state.scene;
+    const box = scene.interaction === "box";
+    const used = usedToday(scene.quotaGroup);
+    $("#screen-activity").dataset.theme = scene.theme;
+    $("#activity-place").textContent = scene.area;
+    $("#activity-title").textContent = box ? scene.name : scene.area + "刮刮卡";
+    $("#activity-instructions").textContent = box ? "拆开零食盲盒，收集卡片并获得奖励。" : "拖动刮开约 40% 的票面，或直接揭晓。";
+    $("#activity-archive").textContent = box ? "数据卡册 ↗" : "开奖记录 ↗";
+    $("#ticket-name").textContent = scene.name;
+    $("#scratch-play").hidden = box || Boolean(used);
+    $("#box-play").hidden = !box || Boolean(used);
+    $("#activity-locked").hidden = !used;
+    $("#activity-lock-message").textContent = used ? usedTodayText(used) : "";
+  }
+
+  function refresh() {
+    state.saved = archiveStore.read();
+    $("#storage-warning").hidden = !archiveStore.isTemporary();
+    if (state.screen === "hub") renderHub();
+    if (state.screen === "home") renderTemple();
+    if (state.screen === "activity") renderActivity();
+    if (state.screen === "archive") renderDivinationArchive();
+    if (state.screen === "records") renderRecords();
+  }
+
+  function cancelDraw() {
+    if (!state.session) return;
+    window.clearTimeout(state.session.timer);
+    if (state.session.scene.interaction === "shake") divination.resetShake();
+    state.session = null;
+  }
+
+  function resetActivity() {
+    if (state.scene.interaction === "scratch") scratchTicket.reset();
+    $("#scratch-reveal").disabled = false;
+    $("#open-box").disabled = false;
+    $("#sealed-box").classList.remove("is-opening");
+  }
+
+  function setLocation(scene) {
+    cancelDraw();
+    state.scene = scene;
+    state.result = null;
+    state.saved = archiveStore.read();
+    if (!scene) {
+      renderHub();
+      setScreen("hub");
+    } else if (scene.interaction === "shake") {
+      renderTemple();
+      setScreen("home");
+    } else {
+      resetActivity();
+      renderActivity();
+      setScreen("activity");
+    }
+  }
+
+  function showDailyResult(quotaGroup = DAILY_QUOTA_GROUP) {
+    const record = usedToday(quotaGroup);
+    if (record) showResult(record);
+    return Boolean(record);
+  }
+
+  function startDivination() {
+    if (state.screen !== "home") return;
+    refresh();
+    if (showDailyResult(state.scene.quotaGroup)) return;
+    state.session = { scene: state.scene, mode: state.saved.mode };
+    divination.resetShake();
+    setScreen("shake");
+  }
+
+  function startActivityDraw() {
+    if (state.screen !== "activity" || state.session) return;
+    refresh();
+    if (showDailyResult(state.scene.quotaGroup)) return;
+    state.session = { scene: state.scene, mode: state.saved.mode };
+    if (state.scene.interaction === "box") {
+      $("#open-box").disabled = true;
+      $("#sealed-box").classList.add("is-opening");
+      finishDraw(350);
+    } else {
+      $("#scratch-reveal").disabled = true;
+      finishDraw(0);
+    }
+  }
+
+  function finishDraw(delay) {
+    const session = state.session;
+    if (!session || session.finishing) return;
+    session.finishing = true;
+    session.timer = window.setTimeout(() => settleDraw(session), delay);
+  }
+
+  function makeRecord(scene, mode, date) {
+    return {
+      ...drawFromPool(scene.poolId),
+      sceneId: scene.id,
+      poolId: scene.poolId,
+      mode,
+      drawnAt: date.toISOString(),
+    };
+  }
+
+  async function settleDraw(session) {
+    if (state.session !== session) return;
+    const { scene, mode } = session;
+    if (mode === "free" && scene.interaction === "shake") {
+      showResult(makeRecord(scene, mode, new Date()), true);
+      return;
+    }
+
+    let record;
+    state.saved = await archiveStore.update((data) => {
+      if (state.session !== session) return false;
+      const now = new Date();
+      const daily = mode === "daily";
+      record = daily ? archiveStore.dailyResult(data, scene.quotaGroup, now) : null;
+      if (record) return false;
+      record = makeRecord(scene, mode, now);
+      if (daily) archiveStore.addDailyRecord(data, scene, record, now);
+      else archiveStore.addRecord(data, scene, record);
+      return true;
+    });
+    if (state.session === session && record) showResult(record);
+    $("#storage-warning").hidden = !archiveStore.isTemporary();
+  }
+
+  function showResult(record, pendingConfirmation = false) {
+    cancelDraw();
+    state.result = { record, pendingConfirmation };
+    const scene = sceneById[record.sceneId];
+    if (scene.interaction === "shake") {
+      const entry = drawPools[record.poolId].find((item) => item.id === record.entryId);
+      divination.renderResult(entry, record.roll);
+      $("#confirm-result").disabled = false;
+      setScreen("result");
+      return;
+    }
+
+    const box = scene.interaction === "box";
+    $("#screen-reward").dataset.theme = scene.theme;
+    $("#reward-art").dataset.interaction = scene.interaction;
+    $("#reward-mark").textContent = record.mark;
+    $("#reward-place").textContent = scene.name;
+    $("#reward-title").textContent = record.title;
+    $("#reward-tier").textContent = record.tier ?? "";
+    $("#reward-tier").hidden = !record.tier;
+    $("#reward-archive").textContent = box ? "数据卡册 ↗" : "开奖记录 ↗";
+    rewardItems.replaceChildren(...record.rewards.map((reward) => element("li", null, rewardText(reward))));
+    setScreen("reward");
+  }
+
+  async function confirmResult() {
+    const result = state.result;
+    if (!result || result.saving) return;
+    if (result.pendingConfirmation) {
+      result.saving = true;
+      $("#confirm-result").disabled = true;
+      state.saved = await archiveStore.update((data) => {
+        archiveStore.addRecord(data, sceneById[result.record.sceneId], result.record);
+        return true;
+      });
+      result.pendingConfirmation = false;
+      result.saving = false;
+      $("#confirm-result").disabled = false;
+      refresh();
+    }
+    if (state.result === result && (state.screen === "result" || state.screen === "reward")) setLocation(state.scene);
+  }
+
+  function renderDivinationArchive() {
+    divination.renderArchive(archiveStore.collection(state.saved, "divination"));
+  }
+
+  async function clearDivinationArchive() {
+    const saved = state.saved;
+    if (!archiveStore.collection(saved, "divination").length && !saved.history.some((item) => item.poolId === "divination")) return;
+    if (!window.confirm("清空本机保存的卦象集录和卦象历史？")) return;
+    state.saved = await archiveStore.update((data) => {
+      delete data.collections.divination;
+      data.history = data.history.filter((item) => item.poolId !== "divination");
+      return true;
+    });
+    refresh();
+  }
+
+  function openDivinationArchive() {
+    state.archiveReturn = state.screen;
+    setScreen("archive");
+    refresh();
+  }
+
+  function rewardText(reward) {
+    return reward.name + " × " + reward.amount.toLocaleString("zh-CN");
+  }
+
+  function renderHistory() {
+    const list = $("#history-list");
+    const selected = historyFilter.value;
+    const records = state.saved.history.filter((record) => !selected || record.sceneId === selected);
+    $("#history-empty").hidden = records.length > 0;
+    list.replaceChildren();
+    for (const record of records) {
+      const item = element("li", "history-item");
+      const label = element("div", "history-label");
+      const place = sceneById[record.sceneId]?.name ?? record.sceneId;
+      label.append(element("strong", null, record.title), element("span", null, place + (record.mode === "daily" ? " · 日常" : " · 试玩")));
+      const date = record.drawnAt ? dateFormat.format(new Date(record.drawnAt)) : record.legacyTime;
+      const time = element("time", "history-time", date);
+      if (record.drawnAt) time.dateTime = record.drawnAt;
+      const detail = element("div", "history-detail");
+      if (record.roll) {
+        divination.renderDice(detail, record.roll);
+      } else {
+        detail.textContent = record.rewards.map(rewardText).join(" · ");
+      }
+      item.append(label, detail, time);
+      list.append(item);
+    }
+  }
+
+  function renderCards() {
+    const list = $("#card-list");
+    const unlocked = archiveStore.collection(state.saved, "snack-box");
+    const cards = drawPools["snack-box"];
+    $("#card-count").textContent = "已收录 " + unlocked.length + " / " + cards.length;
+    list.replaceChildren();
+    for (const card of cards) {
+      const known = unlocked.includes(card.id);
+      const item = element("li", known ? "data-card" : "data-card is-locked");
+      if (known) item.dataset.tier = card.tier;
+      const mark = element("span", "data-card-mark", known ? card.mark : "？");
+      mark.setAttribute("aria-hidden", "true");
+      item.append(mark, element("strong", null, known ? card.title : "未收录"));
+      if (known) item.append(element("span", "data-card-tier", card.tier));
+      list.append(item);
+    }
+  }
+
+  function renderRecords() {
+    const history = state.recordsTab === "history";
+    $("#tab-history").setAttribute("aria-pressed", String(history));
+    $("#tab-cards").setAttribute("aria-pressed", String(!history));
+    $("#history-panel").hidden = !history;
+    $("#cards-panel").hidden = history;
+    if (history) renderHistory();
+    else renderCards();
+  }
+
+  function openRecords(tab, sceneId = "") {
+    if (state.screen === "activity") {
+      cancelDraw();
+      resetActivity();
+    }
+    state.recordsReturn = state.screen;
+    state.recordsTab = tab;
+    historyFilter.value = sceneId;
+    setScreen("records");
+    refresh();
+  }
+
+  function openActivityArchive(scene) {
+    if (scene.interaction === "box") openRecords("cards");
+    else openRecords("history", scene.id);
+  }
+
+  function goBack() {
+    if (state.screen === "records" || state.screen === "archive") {
+      setScreen(state.screen === "records" ? state.recordsReturn : state.archiveReturn);
+      refresh();
+    } else if (["result", "reward", "shake"].includes(state.screen)) {
+      setLocation(state.scene);
+    } else if (state.screen !== "hub") {
+      setLocation(null);
+    }
+  }
+
+  for (const scene of scenes) {
+    const button = element("button", "scene-card");
     button.type = "button";
-    button.className = `catalog-entry${known ? "" : " is-locked"}${entry.id === state.selectedId ? " is-selected" : ""}`;
-    button.dataset.entryId = entry.id;
-    button.setAttribute("aria-label", known ? `${entry.rank}，${entry.title}` : `${entry.rank}，未收录`);
+    button.dataset.theme = scene.theme;
+    button.dataset.scene = scene.id;
+    const art = element("span", "scene-art");
+    art.setAttribute("aria-hidden", "true");
+    art.append(element("span", "scene-mark", scene.mark));
+    const copy = element("span", "scene-card-copy");
+    copy.append(element("strong", null, scene.name), element("span", null, scene.activity));
+    const arrow = element("span", "scene-card-arrow", "↗");
+    arrow.setAttribute("aria-hidden", "true");
+    button.append(art, copy, arrow);
+    button.addEventListener("click", () => setLocation(scene));
+    $("#scene-list").append(button);
+    historyFilter.add(new Option(scene.name, scene.id));
+  }
+  historyFilter.add(new Option("所有地点", "", true, true), 0);
 
-    const dice = document.createElement("span");
-    dice.className = "entry-dice";
-    if (known) renderDice(dice, entry.rolls[0]);
-    else dice.replaceChildren(...makeUnknownDice());
+  for (const input of modeInputs) {
+    input.addEventListener("change", async () => {
+      state.saved = await archiveStore.update((data) => {
+        data.mode = input.value;
+        return true;
+      });
+      refresh();
+    });
+  }
 
-    const copy = document.createElement("span");
-    copy.className = "entry-copy";
-    const name = document.createElement("span");
-    name.className = "entry-title";
-    name.textContent = known ? entry.title : "未收录";
-    const label = document.createElement("span");
-    label.className = "entry-rank";
-    label.textContent = entry.rank;
-    copy.append(name, label);
+  for (const button of document.querySelectorAll("[data-back]")) button.addEventListener("click", goBack);
+  $("#start-draw").addEventListener("click", startDivination);
+  $("#interpret-result").addEventListener("click", () => setReading(true));
+  $("#close-reading").addEventListener("click", () => setReading(false));
+  $("#confirm-result").addEventListener("click", confirmResult);
+  $("#confirm-reward").addEventListener("click", confirmResult);
+  $("#open-archive-home").addEventListener("click", openDivinationArchive);
+  $("#open-archive-result").addEventListener("click", openDivinationArchive);
+  $("#clear-archive").addEventListener("click", clearDivinationArchive);
+  $("#today-hub").addEventListener("click", () => {
+    refresh();
+    showDailyResult();
+  });
+  $("#today-activity").addEventListener("click", () => {
+    refresh();
+    showDailyResult(state.scene.quotaGroup);
+  });
+  $("#scratch-reveal").addEventListener("click", startActivityDraw);
+  $("#open-box").addEventListener("click", startActivityDraw);
+  $("#open-history-hub").addEventListener("click", () => openRecords("history"));
+  $("#activity-archive").addEventListener("click", () => openActivityArchive(state.scene));
+  $("#reward-archive").addEventListener("click", () => openActivityArchive(sceneById[state.result.record.sceneId]));
+  $("#tab-history").addEventListener("click", () => {
+    state.recordsTab = "history";
+    renderRecords();
+  });
+  $("#tab-cards").addEventListener("click", () => {
+    state.recordsTab = "cards";
+    renderRecords();
+  });
+  historyFilter.addEventListener("change", renderHistory);
+  divination.bindShake(() => finishDraw(520));
+  scratchTicket.bind(startActivityDraw);
 
-    const status = document.createElement("span");
-    status.className = "entry-status";
-    status.textContent = known ? "已入册" : "EMPTY";
-    button.append(dice, copy, status);
-    list.appendChild(button);
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || event.defaultPrevented) return;
+    if (reading.classList.contains("is-open")) setReading(false);
+    else goBack();
   });
 
-  const selected = entries.find((entry) => entry.id === state.selectedId && entry.rank === state.rank)
-    || entries.find((entry) => entry.rank === state.rank && state.found.has(entry.id));
-  state.selectedId = selected?.id || null;
-  renderArchiveDetail(selected);
-}
-
-function openArchive() {
-  if (!entries.some((entry) => entry.rank === state.rank)) state.rank = ranks[0].name;
-  renderArchive();
-  setScreen("archive");
-}
-
-function clearArchive() {
-  if (!state.found.size && !state.history.length) return;
-  if (!window.confirm("清空本机保存的卦象记录？")) return;
-  state.found.clear();
-  state.history = [];
-  state.selectedId = null;
-  persist();
-  updateHomeCount();
-  renderArchive();
-}
-
-document.querySelector("#start-draw").addEventListener("click", startDraw);
-document.querySelector("#open-archive-home").addEventListener("click", openArchive);
-document.querySelector("#open-archive-result").addEventListener("click", openArchive);
-document.querySelectorAll("[data-go-home]").forEach((button) => button.addEventListener("click", () => setScreen("home")));
-document.querySelector("#confirm-result").addEventListener("click", saveCurrentResult);
-document.querySelector("#interpret-result").addEventListener("click", () => {
-  const panel = document.querySelector("#reading-panel");
-  panel.classList.add("is-open");
-  panel.setAttribute("aria-hidden", "false");
-});
-document.querySelector("#close-reading").addEventListener("click", () => {
-  const panel = document.querySelector("#reading-panel");
-  panel.classList.remove("is-open");
-  panel.setAttribute("aria-hidden", "true");
-});
-document.querySelector("#tap-shake").addEventListener("click", () => addProgress(13));
-document.querySelector("#clear-archive").addEventListener("click", clearArchive);
-
-document.querySelectorAll(".fortune-filter").forEach((button) => {
-  button.addEventListener("click", () => {
-    state.rank = button.dataset.rank;
-    state.selectedId = null;
-    renderArchive();
+  window.addEventListener("storage", (event) => {
+    if (event.key === archiveStore.key || event.key === null) refresh();
   });
-});
+  window.addEventListener("focus", refresh);
+  let visibleDay = new Date().toDateString();
+  window.setInterval(() => {
+    const today = new Date().toDateString();
+    if (today === visibleDay) return;
+    visibleDay = today;
+    refresh();
+  }, 30_000);
 
-document.querySelector("#catalog-list").addEventListener("click", (event) => {
-  const button = event.target.closest("[data-entry-id]");
-  if (!button) return;
-  state.selectedId = button.dataset.entryId;
-  renderArchive();
-});
-
-const shakeTarget = document.querySelector("#shake-target");
-let lastPointer = null;
-shakeTarget.addEventListener("pointerdown", (event) => {
-  if (state.screen !== "shake" || state.completing) return;
-  state.shaking = true;
-  lastPointer = { x: event.clientX, y: event.clientY };
-  shakeTarget.setPointerCapture(event.pointerId);
-  document.querySelector("#screen-shake").classList.add("is-shaking");
-});
-shakeTarget.addEventListener("pointermove", (event) => {
-  if (!state.shaking || !lastPointer) return;
-  const distance = Math.abs(event.clientX - lastPointer.x) + Math.abs(event.clientY - lastPointer.y);
-  lastPointer = { x: event.clientX, y: event.clientY };
-  addProgress(distance / 7);
-});
-function stopShaking() {
-  state.shaking = false;
-  lastPointer = null;
-  document.querySelector("#screen-shake").classList.remove("is-shaking");
-}
-shakeTarget.addEventListener("pointerup", stopShaking);
-shakeTarget.addEventListener("pointercancel", stopShaking);
-shakeTarget.addEventListener("keydown", (event) => {
-  if (event.key === "Enter" || event.key === " ") {
-    event.preventDefault();
-    addProgress(13);
-  }
-});
-
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") {
-    const panel = document.querySelector("#reading-panel");
-    if (panel.classList.contains("is-open")) document.querySelector("#close-reading").click();
-    else if (state.screen !== "home") setScreen("home");
-  }
-});
-
-readSavedState();
-updateHomeCount();
-renderDice(document.querySelector("#detail-dice"), ["sun", "flame", "light"]);
-renderArchive();
+  setScreen("hub");
+  refresh();
+})();
