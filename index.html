@@ -4,8 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#111612" />
-    <title>问机算卜 · 卦象集录</title>
+    <title>日常抽取档案</title>
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="activities.css" />
   </head>
   <body>
     <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -40,7 +41,28 @@
     </svg>
 
     <main class="app" id="app">
-      <div class="screen screen-home is-active" id="screen-home" aria-hidden="false">
+      <section class="screen journey-screen is-active" id="screen-hub" aria-hidden="false">
+        <div class="journey-shell hub-shell">
+          <header class="hub-header">
+            <h1 tabindex="-1">日常抽取档案</h1>
+            <button class="journal-button" id="open-history-hub" type="button">查看档案 <span aria-hidden="true">↗</span></button>
+          </header>
+          <div class="mode-bar">
+            <fieldset class="mode-switch">
+              <legend class="visually-hidden">抽取模式</legend>
+              <label><input type="radio" name="draw-mode" value="free" checked /><span>自由试玩</span></label>
+              <label><input type="radio" name="draw-mode" value="daily" /><span>日常模式</span></label>
+            </fieldset>
+            <div class="mode-info">
+              <p id="mode-status" role="status"></p>
+              <button id="today-hub" class="journal-link" type="button" hidden>查看今日结果</button>
+            </div>
+          </div>
+          <div class="scene-grid" id="scene-list"></div>
+        </div>
+      </section>
+
+      <div class="screen screen-home" id="screen-home" aria-hidden="true">
         <div class="scene-backdrop" aria-hidden="true">
           <div class="stone-gate"></div>
           <div class="light-shaft"></div>
@@ -48,7 +70,9 @@
         </div>
 
         <header class="scene-hud">
-          <div class="brand-mark"><span class="brand-seal">問</span><span>随便观 · 问机算卜</span></div>
+          <button class="brand-mark temple-back" data-back type="button" aria-label="返回地点列表">
+            <span class="brand-seal" aria-hidden="true">‹</span><span>随便观 · 问机算卜</span>
+          </button>
           <div class="collection-meter"><span>卦象集录</span><strong id="home-count">0 / 26</strong></div>
         </header>
 
@@ -97,7 +121,7 @@
         <div class="hanging-plaque" aria-hidden="true"><span>卦象集录</span></div>
 
         <div class="home-actions">
-          <p class="home-kicker">今日卦象 · 尚未启封</p>
+          <p class="home-kicker" role="status"></p>
           <div class="home-buttons">
             <button class="game-button button-gold" id="start-draw" type="button"><span>开始占卜</span><b>›</b></button>
             <button class="game-button button-dark" id="open-archive-home" type="button"><span>查看集录</span><b>↗</b></button>
@@ -108,13 +132,13 @@
       <section class="screen screen-shake" id="screen-shake" aria-hidden="true">
         <div class="shake-bg" aria-hidden="true"></div>
         <header class="screen-hud">
-          <button class="back-button" data-go-home type="button" aria-label="返回">‹</button>
+          <button class="back-button" data-back type="button" aria-label="返回">‹</button>
           <span>问机算卜</span>
           <span class="hud-spacer"></span>
         </header>
         <div class="shake-copy">
           <span class="section-index">01 / 起卦</span>
-          <h1>心念既定<br />请摇卦取象</h1>
+          <h1 tabindex="-1">心念既定<br />请摇卦取象</h1>
         </div>
         <div class="large-tortoise" id="shake-target" role="button" tabindex="0" aria-label="按住并来回滑动以摇卦">
           <div class="tortoise-rim"></div>
@@ -144,7 +168,7 @@
       <section class="screen screen-result" id="screen-result" aria-hidden="true">
         <div class="result-backdrop" aria-hidden="true"></div>
         <header class="screen-hud result-hud">
-          <button class="back-button" data-go-home type="button" aria-label="返回">‹</button>
+          <button class="back-button" data-back type="button" aria-label="返回">‹</button>
           <span>今日卦象</span>
           <button class="text-button" id="open-archive-result" type="button">卦象集录 ↗</button>
         </header>
@@ -168,7 +192,7 @@
         <div class="result-footer">
           <div class="result-heading">
             <span class="section-index">卦象已定</span>
-            <h1 id="result-title">玄冥凝渊</h1>
+            <h1 id="result-title" tabindex="-1">玄冥凝渊</h1>
             <p id="result-verse">九重寒狱，静候赤鸟破冰而来。</p>
           </div>
           <div class="result-actions">
@@ -176,7 +200,7 @@
             <button class="game-button button-gold" id="confirm-result" type="button">确认</button>
           </div>
         </div>
-        <aside class="reading-panel" id="reading-panel" aria-hidden="true">
+        <aside class="reading-panel" id="reading-panel" aria-hidden="true" inert>
           <button class="reading-close" id="close-reading" type="button" aria-label="收起解读">×</button>
           <span class="section-index">卦象解读</span>
           <h2 id="reading-title">玄冥凝渊</h2>
@@ -194,10 +218,10 @@
           <header class="archive-header">
             <div class="archive-heading">
               <span class="section-index">随便观 · 典藏</span>
-              <h1>卦象集录</h1>
+              <h1 tabindex="-1">卦象集录</h1>
             </div>
             <div class="archive-progress"><span>藏卦集</span><strong id="archive-count">0 / 26</strong></div>
-            <button class="back-button archive-back" data-go-home type="button" aria-label="返回">×</button>
+            <button class="back-button archive-back" data-back type="button" aria-label="返回">×</button>
           </header>
           <div class="archive-layout">
             <nav class="fortune-nav" aria-label="运势分类" id="fortune-nav">
@@ -229,11 +253,98 @@
           </div>
           <footer class="archive-footer">
             <span>卦象玄机，运势解析，撰册集录，于此温习。</span>
-            <button id="clear-archive" class="clear-button" type="button">清空本地记录</button>
+            <button id="clear-archive" class="clear-button" type="button">清空卦象记录</button>
           </footer>
         </div>
       </section>
+
+      <section class="screen journey-screen" id="screen-activity" aria-hidden="true">
+        <div class="journey-shell">
+          <header class="journey-nav">
+            <button class="journal-button" data-back type="button">‹ 返回地点</button>
+            <button class="journal-button" id="activity-archive" type="button"></button>
+          </header>
+          <div class="activity-layout">
+            <div class="activity-copy">
+              <p class="place-area" id="activity-place"></p>
+              <h1 id="activity-title" tabindex="-1"></h1>
+              <p id="activity-instructions"></p>
+              <p class="simulation-note">奖励和概率采用本地试玩设定。</p>
+            </div>
+            <div class="activity-stage">
+              <div id="scratch-play" class="play-panel" hidden>
+                <div class="scratch-ticket">
+                  <span class="ticket-name" id="ticket-name"></span>
+                  <div class="scratch-window">
+                    <div class="scratch-underlay" aria-hidden="true"><span>✦</span><span>✶</span><span>✧</span></div>
+                    <canvas id="scratch-cover" width="432" height="144" aria-label="刮卡区域"></canvas>
+                  </div>
+                  <progress id="scratch-progress" value="0" max="40" aria-label="刮开进度"></progress>
+                </div>
+                <button class="journal-button" id="scratch-reveal" type="button">直接揭晓</button>
+              </div>
+              <div id="box-play" class="play-panel" hidden>
+                <div class="sealed-box" id="sealed-box" aria-hidden="true">
+                  <div class="box-lid"></div>
+                  <div class="box-body"><span>✦</span></div>
+                </div>
+                <button class="journal-button journal-primary" id="open-box" type="button">拆开盲盒</button>
+              </div>
+              <div id="activity-locked" class="locked-panel" hidden>
+                <p id="activity-lock-message"></p>
+                <button id="today-activity" class="journal-button journal-primary" type="button">查看今日结果</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen journey-screen" id="screen-reward" aria-hidden="true">
+        <div class="journey-shell">
+          <header class="journey-nav">
+            <button class="journal-button" data-back type="button">‹ 返回</button>
+            <button class="journal-button" id="reward-archive" type="button"></button>
+          </header>
+          <div class="reward-layout">
+            <div class="reward-art" id="reward-art" aria-hidden="true"><span id="reward-mark"></span></div>
+            <div class="reward-copy">
+              <p class="place-area" id="reward-place"></p>
+              <h1 id="reward-title" tabindex="-1"></h1>
+              <p class="reward-tier" id="reward-tier" hidden></p>
+              <ul class="reward-items" id="reward-items" aria-label="获得奖励"></ul>
+              <button class="journal-button journal-primary" id="confirm-reward" type="button">确认</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen journey-screen" id="screen-records" aria-hidden="true">
+        <div class="journey-shell">
+          <header class="journey-nav">
+            <button class="journal-button" data-back type="button">‹ 返回</button>
+          </header>
+          <h1 class="records-title" tabindex="-1">抽取档案</h1>
+          <nav class="record-tabs" aria-label="档案内容">
+            <button class="journal-button" id="tab-history" type="button" aria-pressed="true" aria-controls="history-panel">开奖记录</button>
+            <button class="journal-button" id="tab-cards" type="button" aria-pressed="false" aria-controls="cards-panel">数据卡册</button>
+          </nav>
+          <div id="history-panel">
+            <label class="history-filter">地点 <select id="history-scene"></select></label>
+            <p class="empty-message" id="history-empty" hidden>这个地点还没有开奖记录。</p>
+            <ol class="history-list" id="history-list"></ol>
+          </div>
+          <div id="cards-panel" hidden>
+            <p class="card-count" id="card-count"></p>
+            <ul class="card-grid" id="card-list"></ul>
+          </div>
+        </div>
+      </section>
+      <p class="storage-warning" id="storage-warning" role="status" hidden>本机存储不可用，记录会保留到页面关闭。</p>
     </main>
+    <script src="divination.js"></script>
+    <script src="scenes.js"></script>
+    <script src="storage.js"></script>
+    <script src="scratch.js"></script>
     <script src="app.js"></script>
   </body>
 </html>
