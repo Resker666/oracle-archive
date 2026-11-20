@@ -1,4 +1,11 @@
 const DAILY_QUOTA_GROUP = "daily-activity";
+const FOUNTAIN_SCENE_ID = "bottle-cap-fountain";
+
+const cardMilestones = [
+  { id: "snack-box-2", cards: 2 },
+  { id: "snack-box-4", cards: 4 },
+  { id: "snack-box-6", cards: 6 },
+];
 
 const scenes = [
   {
@@ -21,11 +28,15 @@ const scenes = [
     interaction: "box", theme: "bakery", mark: "✦", poolId: "snack-box",
     collectionId: "snack-box", quotaGroup: DAILY_QUOTA_GROUP,
   },
+  {
+    id: FOUNTAIN_SCENE_ID, name: "瓶盖仙子喷泉", area: "罗斯凯利法", activity: "喷泉许愿",
+    interaction: "wish", theme: "fountain", mark: "✧", poolId: "fountain", bottleCapCost: 1,
+  },
 ];
 
 const sceneById = Object.fromEntries(scenes.map((scene) => [scene.id, scene]));
 
-// The ticket and box pools contain original, local simulation rewards.
+// These prizes are local simulation rewards.
 const drawPools = {
   divination: divination.entries,
   newsstand: [
@@ -42,6 +53,11 @@ const drawPools = {
     { id: "letter-from-orbit", title: "轨道来信", mark: "✧", tier: "稀有", weight: 12, rewards: [{ name: "菲林", amount: 10 }] },
     { id: "night-stall", title: "月下摊位", mark: "☾", tier: "稀有", weight: 8, rewards: [{ name: "菲林", amount: 15 }] },
     { id: "gilded-recipe", title: "金边秘方", mark: "✹", tier: "珍藏", weight: 3, rewards: [{ name: "菲林", amount: 30 }] },
+  ],
+  fountain: [
+    { id: "quiet-ripple", title: "一圈涟漪", mark: "◌", weight: 55, rewards: [{ name: "丁尼", amount: 8888 }] },
+    { id: "moonlit-water", title: "水中月影", mark: "☾", weight: 30, rewards: [{ name: "菲林", amount: 20 }] },
+    { id: "floating-starlight", title: "浮光星屑", mark: "✧", weight: 15, rewards: [{ name: "菲林", amount: 40 }] },
   ],
 };
 

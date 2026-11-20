@@ -7,6 +7,13 @@
   const rewardItems = $("#reward-items");
   const historyFilter = $("#history-scene");
   const dateFormat = new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+  const activityInstructions = {
+    scratch: "拖动刮开约 40% 的票面，或直接揭晓。",
+    box: "拆开零食盲盒，收集卡片并获得奖励。",
+    wish: "好运瓶盖可以在数据卡册领取。",
+  };
+  const snackCards = drawPools["snack-box"];
+  const claimsInFlight = new Set();
   const state = {
     screen: "hub",
     saved: archiveStore.read(),
@@ -63,8 +70,8 @@
     for (const input of modeInputs) input.checked = input.value === state.saved.mode;
     const used = usedToday(DAILY_QUOTA_GROUP);
     $("#mode-status").textContent = used ? usedTodayText(used) : state.saved.mode === "daily"
-      ? "今日还有 1 次，所有地点共用。"
-      : "可重复抽取，各地点均可试玩。";
+      ? "占卜、刮卡和拆盒共用今日 1 次。"
+      : "可重复占卜、刮卡和拆盒。";
     $("#today-hub").hidden = !used;
   }
 
@@ -78,18 +85,29 @@
 
   function renderActivity() {
     const scene = state.scene;
-    const box = scene.interaction === "box";
+    const { interaction } = scene;
     const used = usedToday(scene.quotaGroup);
     $("#screen-activity").dataset.theme = scene.theme;
     $("#activity-place").textContent = scene.area;
-    $("#activity-title").textContent = box ? scene.name : scene.area + "刮刮卡";
-    $("#activity-instructions").textContent = box ? "拆开零食盲盒，收集卡片并获得奖励。" : "拖动刮开约 40% 的票面，或直接揭晓。";
-    $("#activity-archive").textContent = box ? "数据卡册 ↗" : "开奖记录 ↗";
-    $("#ticket-name").textContent = scene.name;
-    $("#scratch-play").hidden = box || Boolean(used);
-    $("#box-play").hidden = !box || Boolean(used);
+    $("#activity-title").textContent = interaction === "scratch" ? scene.area + "刮刮卡" : scene.name;
+    $("#activity-instructions").textContent = activityInstructions[interaction];
+    $("#activity-archive").textContent = interaction === "box" ? "数据卡册 ↗" : "开奖记录 ↗";
+    if (interaction === "scratch") $("#ticket-name").textContent = scene.name;
+    for (const play of ["scratch", "box", "wish"]) {
+      $("#" + play + "-play").hidden = Boolean(used) || play !== interaction;
+    }
     $("#activity-locked").hidden = !used;
     $("#activity-lock-message").textContent = used ? usedTodayText(used) : "";
+
+    if (interaction === "wish") {
+      const button = $("#make-wish");
+      const hasEnoughCaps = state.saved.bottleCaps >= scene.bottleCapCost;
+      $("#wish-balance").textContent = state.saved.bottleCaps + " 枚";
+      button.textContent = hasEnoughCaps
+        ? "投入 " + scene.bottleCapCost + " 枚许愿"
+        : "需要 " + scene.bottleCapCost + " 枚瓶盖";
+      button.disabled = Boolean(state.session) || !hasEnoughCaps;
+    }
   }
 
   function refresh() {
@@ -114,6 +132,7 @@
     $("#scratch-reveal").disabled = false;
     $("#open-box").disabled = false;
     $("#sealed-box").classList.remove("is-opening");
+    $("#wish-fountain").classList.remove("is-wishing");
   }
 
   function setLocation(scene) {
@@ -152,15 +171,24 @@
   function startActivityDraw() {
     if (state.screen !== "activity" || state.session) return;
     refresh();
-    if (showDailyResult(state.scene.quotaGroup)) return;
-    state.session = { scene: state.scene, mode: state.saved.mode };
-    if (state.scene.interaction === "box") {
-      $("#open-box").disabled = true;
-      $("#sealed-box").classList.add("is-opening");
-      finishDraw(350);
-    } else {
-      $("#scratch-reveal").disabled = true;
-      finishDraw(0);
+    const scene = state.scene;
+    if (scene.quotaGroup && showDailyResult(scene.quotaGroup)) return;
+    if (state.saved.bottleCaps < (scene.bottleCapCost ?? 0)) return;
+    state.session = { scene, mode: state.saved.mode };
+    switch (scene.interaction) {
+      case "box":
+        $("#open-box").disabled = true;
+        $("#sealed-box").classList.add("is-opening");
+        finishDraw(350);
+        break;
+      case "wish":
+        $("#make-wish").disabled = true;
+        $("#wish-fountain").classList.add("is-wishing");
+        finishDraw(560);
+        break;
+      default:
+        $("#scratch-reveal").disabled = true;
+        finishDraw(0);
     }
   }
 
@@ -193,15 +221,28 @@
     state.saved = await archiveStore.update((data) => {
       if (state.session !== session) return false;
       const now = new Date();
-      const daily = mode === "daily";
+      const daily = mode === "daily" && Boolean(scene.quotaGroup);
       record = daily ? archiveStore.dailyResult(data, scene.quotaGroup, now) : null;
       if (record) return false;
+      const cost = scene.bottleCapCost ?? 0;
+      if (data.bottleCaps < cost) return false;
       record = makeRecord(scene, mode, now);
+      if (cost) {
+        record.bottleCapsSpent = cost;
+        data.bottleCaps -= cost;
+      }
       if (daily) archiveStore.addDailyRecord(data, scene, record, now);
       else archiveStore.addRecord(data, scene, record);
       return true;
     });
-    if (state.session === session && record) showResult(record);
+    if (state.session === session) {
+      if (record) showResult(record);
+      else {
+        cancelDraw();
+        resetActivity();
+        refresh();
+      }
+    }
     $("#storage-warning").hidden = !archiveStore.isTemporary();
   }
 
@@ -284,7 +325,10 @@
       const item = element("li", "history-item");
       const label = element("div", "history-label");
       const place = sceneById[record.sceneId]?.name ?? record.sceneId;
-      label.append(element("strong", null, record.title), element("span", null, place + (record.mode === "daily" ? " · 日常" : " · 试玩")));
+      const activity = record.bottleCapsSpent
+        ? "消耗 " + record.bottleCapsSpent + " 枚瓶盖"
+        : (record.mode === "daily" ? "日常" : "试玩");
+      label.append(element("strong", null, record.title), element("span", null, place + " · " + activity));
       const date = record.drawnAt ? dateFormat.format(new Date(record.drawnAt)) : record.legacyTime;
       const time = element("time", "history-time", date);
       if (record.drawnAt) time.dateTime = record.drawnAt;
@@ -299,14 +343,51 @@
     }
   }
 
+  function unlockedSnackCards(data) {
+    const owned = archiveStore.collection(data, "snack-box");
+    return new Set(snackCards.filter((card) => owned.includes(card.id)).map((card) => card.id));
+  }
+
+  function renderMilestones(cardCount) {
+    $("#card-cap-balance").textContent = state.saved.bottleCaps + " 枚";
+    for (const { milestone, button } of milestoneControls) {
+      const claimed = state.saved.claimedMilestones.includes(milestone.id);
+      const waiting = claimsInFlight.has(milestone.id);
+      const remaining = milestone.cards - cardCount;
+      button.disabled = claimed || waiting || remaining > 0;
+      if (claimed) button.textContent = "已领取";
+      else if (waiting) button.textContent = "领取中…";
+      else if (remaining > 0) button.textContent = "还差 " + remaining + " 张";
+      else button.textContent = "领取 1 枚";
+      button.setAttribute("aria-label", "收集 " + milestone.cards + " 张卡片，" + button.textContent);
+    }
+  }
+
+  async function claimMilestone(milestone) {
+    if (claimsInFlight.has(milestone.id)) return;
+    claimsInFlight.add(milestone.id);
+    renderMilestones(unlockedSnackCards(state.saved).size);
+    try {
+      await archiveStore.update((data) => {
+        if (data.claimedMilestones.includes(milestone.id) || unlockedSnackCards(data).size < milestone.cards) return false;
+        data.claimedMilestones.push(milestone.id);
+        data.bottleCaps += 1;
+        return true;
+      });
+    } finally {
+      claimsInFlight.delete(milestone.id);
+      refresh();
+    }
+  }
+
   function renderCards() {
     const list = $("#card-list");
-    const unlocked = archiveStore.collection(state.saved, "snack-box");
-    const cards = drawPools["snack-box"];
-    $("#card-count").textContent = "已收录 " + unlocked.length + " / " + cards.length;
+    const unlocked = unlockedSnackCards(state.saved);
+    $("#card-count").textContent = "已收录 " + unlocked.size + " / " + snackCards.length;
+    renderMilestones(unlocked.size);
     list.replaceChildren();
-    for (const card of cards) {
-      const known = unlocked.includes(card.id);
+    for (const card of snackCards) {
+      const known = unlocked.has(card.id);
       const item = element("li", known ? "data-card" : "data-card is-locked");
       if (known) item.dataset.tier = card.tier;
       const mark = element("span", "data-card-mark", known ? card.mark : "？");
@@ -374,6 +455,17 @@
   }
   historyFilter.add(new Option("所有地点", "", true, true), 0);
 
+  const milestoneControls = cardMilestones.map((milestone) => {
+    const item = element("li", "card-milestone");
+    const button = element("button", "journal-button");
+    button.type = "button";
+    button.dataset.milestone = milestone.id;
+    button.addEventListener("click", () => claimMilestone(milestone));
+    item.append(element("strong", null, "收集 " + milestone.cards + " 张"), button);
+    $("#card-milestones").append(item);
+    return { milestone, button };
+  });
+
   for (const input of modeInputs) {
     input.addEventListener("change", async () => {
       state.saved = await archiveStore.update((data) => {
@@ -403,6 +495,9 @@
   });
   $("#scratch-reveal").addEventListener("click", startActivityDraw);
   $("#open-box").addEventListener("click", startActivityDraw);
+  $("#make-wish").addEventListener("click", startActivityDraw);
+  $("#wish-card-book").addEventListener("click", () => openRecords("cards"));
+  $("#open-fountain").addEventListener("click", () => setLocation(sceneById[FOUNTAIN_SCENE_ID]));
   $("#open-history-hub").addEventListener("click", () => openRecords("history"));
   $("#activity-archive").addEventListener("click", () => openActivityArchive(state.scene));
   $("#reward-archive").addEventListener("click", () => openActivityArchive(sceneById[state.result.record.sceneId]));

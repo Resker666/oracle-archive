@@ -29,6 +29,7 @@
 [data-theme="sixth-street"] { --highlight: #f0b477; --shade: #7d4931; }
 [data-theme="lumina-square"] { --highlight: #a2dacd; --shade: #366366; }
 [data-theme="bakery"] { --highlight: #f3b1a4; --shade: #844638; }
+[data-theme="fountain"] { --highlight: #b7e3ee; --shade: #355d73; }
 
 .journey-shell {
   width: min(1090px, calc(100% - 72px));
@@ -158,6 +159,7 @@
 }
 
 .scene-card:hover { transform: translateY(-2px); border-color: var(--highlight); }
+.scene-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
 .scene-card-copy { display: grid; gap: 8px; }
 .scene-card-copy strong { font: 900 clamp(20px, 2.5vw, 34px)/1.16 var(--serif); overflow-wrap: anywhere; }
 .scene-card-copy > span { color: var(--highlight); font-size: .92rem; }
@@ -287,6 +289,60 @@
   to { transform: translateY(-110%) rotate(-12deg) rotateX(24deg); }
 }
 
+.wish-fountain {
+  position: relative;
+  width: min(88%, 370px);
+  aspect-ratio: 1.65;
+}
+
+.fountain-basin {
+  position: absolute;
+  inset: auto 0 9%;
+  height: 45%;
+  border: 8px double #b7ced3;
+  border-radius: 50%;
+  background:
+    repeating-radial-gradient(ellipse at center, transparent 0 14%, #dcfbef4a 15% 16%, transparent 18% 23%),
+    radial-gradient(ellipse, #86cacf, #315b74 76%);
+  box-shadow: 0 13px 0 #324a56, 0 16px 24px #0a181d;
+}
+
+.fountain-spray {
+  position: absolute;
+  inset: 19% 33% 31%;
+  border: 2px solid #b7e3ee91;
+  border-bottom: 0;
+  border-radius: 54% 54% 50% 50% / 80% 80% 20% 20%;
+  background: radial-gradient(ellipse at bottom, #b7e3ee40, transparent 62%);
+}
+
+.fountain-cap {
+  position: absolute;
+  top: 17%;
+  left: 49%;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  aspect-ratio: 1;
+  border: 4px double #684e27;
+  border-radius: 50%;
+  background: #eace83;
+  color: #4d3b23;
+  font-size: 24px;
+  transform: translateX(-50%) rotate(-16deg);
+}
+
+.is-wishing .fountain-cap { animation: toss-cap .56s ease-in both; }
+@keyframes toss-cap {
+  40% { transform: translate(-30%, -30%) rotate(105deg); }
+  to { transform: translate(-50%, 180%) rotate(235deg) scale(.6); opacity: 0; }
+}
+
+#wish-play { gap: 17px; }
+.wish-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 9px; }
+.cap-balance { margin: 0; color: #e2d8c2; font-size: .9rem; }
+.cap-balance strong { margin-left: 3px; color: var(--highlight); font-size: 1.16rem; }
+
 .locked-panel { padding: 30px; border: 1px solid #e9c87950; border-radius: 10px; background: #14201d; }
 .locked-panel p { margin: 0 0 18px; color: var(--highlight); font-weight: 800; }
 .reward-layout { grid-template-columns: minmax(230px, .8fr) minmax(0, 1fr); }
@@ -309,6 +365,7 @@
 }
 
 .reward-art[data-interaction="box"] { width: min(83%, 252px); aspect-ratio: .76; transform: rotate(-8deg); }
+.reward-art[data-interaction="wish"] { width: min(80%, 280px); aspect-ratio: 1; border-radius: 50%; }
 .reward-tier { color: var(--highlight); font-weight: 850; }
 .reward-items { display: grid; gap: 8px; margin: 20px 0 25px; padding: 0; list-style: none; }
 .reward-items li { width: fit-content; padding: 9px 13px; border-radius: 6px; background: #0f1a16; color: #ffe5a7; font-weight: 800; }
@@ -333,6 +390,32 @@
 .history-label span, .history-time, .empty-message, .card-count { color: #ded1b6; font-size: .88rem; }
 .history-detail { display: flex; gap: 5px; color: #f0d497; }
 .history-detail .mini-die { width: 26px; }
+
+.card-collection-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 18px; }
+.card-collection-header .card-count { margin: 0; }
+.card-collection-header .cap-balance { margin-left: auto; }
+.card-milestones {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.card-milestone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 13px;
+  border: 1px solid #dfc9944a;
+  border-radius: 8px;
+  background: #15211d;
+  color: #ffecc8;
+}
+
+.card-milestone .journal-button:not(:disabled) { background: var(--highlight); color: #2c2117; }
+.card-milestone .journal-button:disabled { opacity: 1; color: #c9bda5; }
 .card-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 0; list-style: none; }
 .data-card {
   display: grid;
@@ -374,9 +457,14 @@
   .play-panel { gap: 18px; }
   .reward-art { width: min(73%, 260px); }
   .reward-art[data-interaction="box"] { width: min(45%, 165px); }
+  .reward-art[data-interaction="wish"] { width: min(54%, 185px); }
   .history-item { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 10px; }
   .history-detail { grid-column: 1; }
   .history-time { grid-column: 2; grid-row: 1 / 3; max-width: 12ch; text-align: right; }
+  .card-collection-header .cap-balance { margin-left: 0; }
+  .card-milestones { gap: 7px; }
+  .card-milestone { flex-direction: column; justify-content: center; padding: 9px 4px; }
+  .card-milestone .journal-button { padding-inline: 6px; }
   .card-grid { gap: 7px; }
   .data-card { min-height: 124px; font-size: .9rem; }
   .data-card-mark { font-size: 34px; }

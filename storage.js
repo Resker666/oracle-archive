@@ -3,7 +3,10 @@ const archiveStore = (() => {
   const oldKey = "zzz-divination-local-v2";
   const historyLimit = 40;
   const divinationEntries = new Map(divination.entries.map((entry) => [entry.id, entry]));
-  const empty = () => ({ version: 3, mode: "free", history: [], collections: {}, dailyUsage: {} });
+  const empty = () => ({
+    version: 3, mode: "free", history: [], collections: {}, dailyUsage: {},
+    bottleCaps: 0, claimedMilestones: [],
+  });
   let snapshot = empty();
   let temporary = false;
 
@@ -45,9 +48,16 @@ const archiveStore = (() => {
     if (temporary) return snapshot;
     try {
       const saved = parse(localStorage.getItem(key));
-      snapshot = saved?.version === 3 && Array.isArray(saved.history) && saved.collections && saved.dailyUsage
-        ? { ...saved, mode: saved.mode === "daily" ? "daily" : "free" }
-        : migrate(parse(localStorage.getItem(oldKey)));
+      if (saved?.version === 3 && Array.isArray(saved.history) && saved.collections && saved.dailyUsage) {
+        snapshot = {
+          ...saved,
+          mode: saved.mode === "daily" ? "daily" : "free",
+          bottleCaps: Number.isSafeInteger(saved.bottleCaps) && saved.bottleCaps > 0 ? saved.bottleCaps : 0,
+          claimedMilestones: Array.isArray(saved.claimedMilestones) ? saved.claimedMilestones : [],
+        };
+      } else {
+        snapshot = migrate(parse(localStorage.getItem(oldKey)));
+      }
     } catch {
       temporary = true;
     }
@@ -69,7 +79,7 @@ const archiveStore = (() => {
       return data;
     };
 
-    // Keep a daily claim and its record in the same update across tabs.
+    // Check balances and limits against the latest save before writing across tabs.
     if (!temporary && navigator.locks) {
       let acquired = false;
       try {
@@ -85,7 +95,8 @@ const archiveStore = (() => {
   }
 
   function collection(data, collectionId) {
-    return data.collections[collectionId] ?? [];
+    const ids = data.collections[collectionId];
+    return Array.isArray(ids) ? ids : [];
   }
 
   function addRecord(data, scene, record) {
