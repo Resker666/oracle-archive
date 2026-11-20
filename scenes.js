@@ -15,7 +15,7 @@ const scenes = [
   },
   {
     id: "sixth-street-newsstand", name: "六分街报刊亭", area: "六分街", activity: "报刊亭刮刮卡",
-    interaction: "scratch", theme: "sixth-street", mark: "✶", poolId: "newsstand",
+    interaction: "scratch", theme: "sixth-street", mark: "✶", poolId: "newsstand", featured: true,
     quotaGroup: DAILY_QUOTA_GROUP,
   },
   {
@@ -25,7 +25,7 @@ const scenes = [
   },
   {
     id: "roarin-brekkies", name: "吼吼饼铺", area: "罗斯凯利法", activity: "零食盲盒",
-    interaction: "box", theme: "bakery", mark: "✦", poolId: "snack-box",
+    interaction: "box", theme: "bakery", mark: "✦", poolId: "snack-box", featured: true,
     collectionId: "snack-box", quotaGroup: DAILY_QUOTA_GROUP,
   },
   {

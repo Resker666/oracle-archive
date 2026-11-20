@@ -8,8 +8,8 @@
   const historyFilter = $("#history-scene");
   const dateFormat = new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
   const activityInstructions = {
-    scratch: "拖动刮开约 40% 的票面，或直接揭晓。",
-    box: "拆开零食盲盒，收集卡片并获得奖励。",
+    scratch: "划开银膜。刮开三格后就能看到完整票面。",
+    box: "点一下盒盖，揭晓里面的数据卡片。",
     wish: "好运瓶盖可以在数据卡册领取。",
   };
   const snackCards = drawPools["snack-box"];
@@ -91,7 +91,7 @@
     $("#activity-place").textContent = scene.area;
     $("#activity-title").textContent = interaction === "scratch" ? scene.area + "刮刮卡" : scene.name;
     $("#activity-instructions").textContent = activityInstructions[interaction];
-    $("#activity-archive").textContent = interaction === "box" ? "数据卡册 ↗" : "开奖记录 ↗";
+    $("#activity-archive").textContent = interaction === "box" ? "数据卡册" : "开奖记录";
     if (interaction === "scratch") $("#ticket-name").textContent = scene.name;
     for (const play of ["scratch", "box", "wish"]) {
       $("#" + play + "-play").hidden = Boolean(used) || play !== interaction;
@@ -227,6 +227,9 @@
       const cost = scene.bottleCapCost ?? 0;
       if (data.bottleCaps < cost) return false;
       record = makeRecord(scene, mode, now);
+      if (scene.interaction === "box") {
+        record.isNewCard = !archiveStore.collection(data, scene.collectionId).includes(record.entryId);
+      }
       if (cost) {
         record.bottleCapsSpent = cost;
         data.bottleCaps -= cost;
@@ -260,13 +263,23 @@
 
     const box = scene.interaction === "box";
     $("#screen-reward").dataset.theme = scene.theme;
-    $("#reward-art").dataset.interaction = scene.interaction;
-    $("#reward-mark").textContent = record.mark;
+    $("#screen-reward").dataset.tier = record.tier ?? "";
+    const rewardArt = $("#reward-art");
+    rewardArt.dataset.interaction = scene.interaction;
+    rewardArt.dataset.card = box ? record.entryId : "";
+    const artMark = $("#reward-mark");
+    if (scene.interaction === "scratch") {
+      artMark.replaceChildren(...Array.from({ length: 3 }, () => element("span", "reward-symbol", record.mark)));
+    } else {
+      artMark.textContent = record.mark;
+    }
     $("#reward-place").textContent = scene.name;
     $("#reward-title").textContent = record.title;
     $("#reward-tier").textContent = record.tier ?? "";
     $("#reward-tier").hidden = !record.tier;
-    $("#reward-archive").textContent = box ? "数据卡册 ↗" : "开奖记录 ↗";
+    $("#reward-new").hidden = !record.isNewCard;
+    $("#reward-tags").hidden = !record.tier && !record.isNewCard;
+    $("#reward-archive").textContent = box ? "数据卡册" : "开奖记录";
     rewardItems.replaceChildren(...record.rewards.map((reward) => element("li", null, rewardText(reward))));
     setScreen("reward");
   }
@@ -389,7 +402,10 @@
     for (const card of snackCards) {
       const known = unlocked.has(card.id);
       const item = element("li", known ? "data-card" : "data-card is-locked");
-      if (known) item.dataset.tier = card.tier;
+      if (known) {
+        item.dataset.tier = card.tier;
+        item.dataset.card = card.id;
+      }
       const mark = element("span", "data-card-mark", known ? card.mark : "？");
       mark.setAttribute("aria-hidden", "true");
       item.append(mark, element("strong", null, known ? card.title : "未收录"));
@@ -436,19 +452,19 @@
     }
   }
 
-  for (const scene of scenes) {
+  const landingScenes = [...scenes].sort((first, second) => Number(Boolean(second.featured)) - Number(Boolean(first.featured)));
+  for (const scene of landingScenes) {
     const button = element("button", "scene-card");
     button.type = "button";
     button.dataset.theme = scene.theme;
     button.dataset.scene = scene.id;
+    if (scene.featured) button.dataset.featured = "";
     const art = element("span", "scene-art");
     art.setAttribute("aria-hidden", "true");
     art.append(element("span", "scene-mark", scene.mark));
     const copy = element("span", "scene-card-copy");
     copy.append(element("strong", null, scene.name), element("span", null, scene.activity));
-    const arrow = element("span", "scene-card-arrow", "↗");
-    arrow.setAttribute("aria-hidden", "true");
-    button.append(art, copy, arrow);
+    button.append(art, copy);
     button.addEventListener("click", () => setLocation(scene));
     $("#scene-list").append(button);
     historyFilter.add(new Option(scene.name, scene.id));
