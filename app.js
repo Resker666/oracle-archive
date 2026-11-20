@@ -452,19 +452,14 @@
     }
   }
 
-  const landingScenes = [...scenes].sort((first, second) => Number(Boolean(second.featured)) - Number(Boolean(first.featured)));
-  for (const scene of landingScenes) {
+  for (const scene of scenes) {
     const button = element("button", "scene-card");
     button.type = "button";
     button.dataset.theme = scene.theme;
     button.dataset.scene = scene.id;
-    if (scene.featured) button.dataset.featured = "";
-    const art = element("span", "scene-art");
-    art.setAttribute("aria-hidden", "true");
-    art.append(element("span", "scene-mark", scene.mark));
     const copy = element("span", "scene-card-copy");
     copy.append(element("strong", null, scene.name), element("span", null, scene.activity));
-    button.append(art, copy);
+    button.append(copy);
     button.addEventListener("click", () => setLocation(scene));
     $("#scene-list").append(button);
     historyFilter.add(new Option(scene.name, scene.id));
