@@ -45,7 +45,7 @@
         <div class="journey-shell hub-shell">
           <header class="hub-header">
             <h1 tabindex="-1">日常抽取档案</h1>
-            <button class="journal-button" id="open-history-hub" type="button">查看档案 <span aria-hidden="true">↗</span></button>
+            <button class="journal-button" id="open-history-hub" type="button">查看档案</button>
           </header>
           <div class="mode-bar">
             <fieldset class="mode-switch">
@@ -261,7 +261,7 @@
       <section class="screen journey-screen" id="screen-activity" aria-hidden="true">
         <div class="journey-shell">
           <header class="journey-nav">
-            <button class="journal-button" data-back type="button">‹ 返回地点</button>
+            <button class="journal-button" data-back type="button">返回地点</button>
             <button class="journal-button" id="activity-archive" type="button"></button>
           </header>
           <div class="activity-layout">
@@ -274,21 +274,32 @@
             <div class="activity-stage">
               <div id="scratch-play" class="play-panel" hidden>
                 <div class="scratch-ticket">
-                  <span class="ticket-name" id="ticket-name"></span>
-                  <div class="scratch-window">
-                    <div class="scratch-underlay" aria-hidden="true"><span>✦</span><span>✶</span><span>✧</span></div>
-                    <canvas id="scratch-cover" width="432" height="144" aria-label="刮卡区域"></canvas>
+                  <div class="ticket-header">
+                    <span class="ticket-name" id="ticket-name"></span>
+                    <span class="ticket-print" aria-hidden="true"></span>
                   </div>
-                  <progress id="scratch-progress" value="0" max="40" aria-label="刮开进度"></progress>
+                  <div class="scratch-window">
+                    <div class="scratch-underlay" aria-hidden="true">
+                      <span class="scratch-tile">✦</span><span class="scratch-tile">✦</span><span class="scratch-tile">✦</span>
+                    </div>
+                    <canvas id="scratch-cover" width="432" height="144" aria-label="三格刮卡区域"></canvas>
+                  </div>
+                  <div class="ticket-footer">
+                    <span id="scratch-tile-count" role="status">已刮开 0 / 3 格</span>
+                    <progress id="scratch-progress" value="0" max="40" aria-label="刮卡总进度"></progress>
+                  </div>
                 </div>
                 <button class="journal-button" id="scratch-reveal" type="button">直接揭晓</button>
               </div>
               <div id="box-play" class="play-panel" hidden>
-                <div class="sealed-box" id="sealed-box" aria-hidden="true">
-                  <div class="box-lid"></div>
-                  <div class="box-body"><span>✦</span></div>
-                </div>
-                <button class="journal-button journal-primary" id="open-box" type="button">拆开盲盒</button>
+                <button class="box-control" id="open-box" type="button">
+                  <span class="sealed-box" id="sealed-box" aria-hidden="true">
+                    <span class="box-peek"></span>
+                    <span class="box-lid"></span>
+                    <span class="box-body"><span class="box-stamp">✱</span></span>
+                  </span>
+                  <span class="journal-button journal-primary">拆开盲盒</span>
+                </button>
               </div>
               <div id="wish-play" class="play-panel" hidden>
                 <div class="wish-fountain" id="wish-fountain" aria-hidden="true">
@@ -314,7 +325,7 @@
       <section class="screen journey-screen" id="screen-reward" aria-hidden="true">
         <div class="journey-shell">
           <header class="journey-nav">
-            <button class="journal-button" data-back type="button">‹ 返回</button>
+            <button class="journal-button" data-back type="button">返回</button>
             <button class="journal-button" id="reward-archive" type="button"></button>
           </header>
           <div class="reward-layout">
@@ -322,7 +333,10 @@
             <div class="reward-copy">
               <p class="place-area" id="reward-place"></p>
               <h1 id="reward-title" tabindex="-1"></h1>
-              <p class="reward-tier" id="reward-tier" hidden></p>
+              <div class="reward-tags" id="reward-tags" hidden>
+                <span class="reward-tier" id="reward-tier" hidden></span>
+                <span class="reward-new" id="reward-new" hidden>新收录</span>
+              </div>
               <ul class="reward-items" id="reward-items" aria-label="获得奖励"></ul>
               <button class="journal-button journal-primary" id="confirm-reward" type="button">确认</button>
             </div>

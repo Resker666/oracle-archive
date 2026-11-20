@@ -9,24 +9,24 @@ const cardMilestones = [
 
 const scenes = [
   {
-    id: "suibian-temple", name: "随便观", area: "卫非地", activity: "问机算卜",
-    interaction: "shake", theme: "temple", mark: "卜", poolId: "divination",
-    collectionId: "divination", quotaGroup: DAILY_QUOTA_GROUP,
-  },
-  {
     id: "sixth-street-newsstand", name: "六分街报刊亭", area: "六分街", activity: "报刊亭刮刮卡",
     interaction: "scratch", theme: "sixth-street", mark: "✶", poolId: "newsstand",
-    quotaGroup: DAILY_QUOTA_GROUP,
-  },
-  {
-    id: "lumina-square-newsstand", name: "光映广场报刊亭", area: "光映广场", activity: "报刊亭刮刮卡",
-    interaction: "scratch", theme: "lumina-square", mark: "✶", poolId: "newsstand",
     quotaGroup: DAILY_QUOTA_GROUP,
   },
   {
     id: "roarin-brekkies", name: "吼吼饼铺", area: "罗斯凯利法", activity: "零食盲盒",
     interaction: "box", theme: "bakery", mark: "✦", poolId: "snack-box",
     collectionId: "snack-box", quotaGroup: DAILY_QUOTA_GROUP,
+  },
+  {
+    id: "suibian-temple", name: "随便观", area: "卫非地", activity: "问机算卜",
+    interaction: "shake", theme: "temple", mark: "卜", poolId: "divination",
+    collectionId: "divination", quotaGroup: DAILY_QUOTA_GROUP,
+  },
+  {
+    id: "lumina-square-newsstand", name: "光映广场报刊亭", area: "光映广场", activity: "报刊亭刮刮卡",
+    interaction: "scratch", theme: "lumina-square", mark: "✶", poolId: "newsstand",
+    quotaGroup: DAILY_QUOTA_GROUP,
   },
   {
     id: FOUNTAIN_SCENE_ID, name: "瓶盖仙子喷泉", area: "罗斯凯利法", activity: "喷泉许愿",
